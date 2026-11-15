@@ -1,41 +1,60 @@
 @echo off
 
 REM Multi-Stream Listener & Transcriber — Windows launcher
+REM Just double-click this file to start everything.
 
-REM cd to the directory where this script lives
 cd /d "%~dp0"
 
-REM Activate virtual environment if present
-if exist "venv\Scripts\activate.bat" (
-    echo Activating virtual environment (venv)...
-    call venv\Scripts\activate.bat
-) else if exist ".venv\Scripts\activate.bat" (
-    echo Activating virtual environment (.venv)...
-    call .venv\Scripts\activate.bat
-)
+echo ============================================
+echo   Multi-Stream Listener and Transcriber
+echo ============================================
+echo.
 
-REM Check that required external tools are installed
-where ffmpeg >nul 2>nul
+REM --- Check Python ---
+python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo Error: ffmpeg is not installed or not on PATH.
-    echo Install it from https://ffmpeg.org/download.html and add to PATH.
+    echo [ERROR] Python is not installed or not on PATH.
+    echo         Python 3.10+ is required. Download from https://python.org
+    echo.
     pause
     exit /b 1
 )
 
-where streamlink >nul 2>nul
+REM --- Check ffmpeg ---
+where ffmpeg >nul 2>&1
 if %errorlevel% neq 0 (
-    echo Error: streamlink is not installed or not on PATH.
-    echo Install it with: pip install streamlink
+    echo [ERROR] ffmpeg is not installed or not on PATH.
+    echo         Install with: winget install Gyan.FFmpeg
+    echo.
     pause
     exit /b 1
 )
 
-echo Starting Multi-Stream Listener & Transcriber...
+REM --- Create virtual environment on first run ---
+if not exist "venv" (
+    echo Setting up for first time...
+    python -m venv venv
+    echo.
+)
+
+REM --- Activate virtual environment ---
+call venv\Scripts\activate.bat
+
+REM --- Install dependencies if needed ---
+python -c "import faster_whisper" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Installing dependencies...
+    pip install -r requirements.txt
+    playwright install chromium
+    echo.
+)
+
+echo Starting server...
 echo Dashboard will be available at http://localhost:8000
+echo.
 
-REM Open the dashboard in the default browser
+REM --- Open the dashboard in the default browser ---
 start http://localhost:8000
 
-REM Start uvicorn (this blocks until the server is stopped with Ctrl+C)
-python -m uvicorn main:app --host 0.0.0.0 --port 8000
+REM --- Start uvicorn (blocks until Ctrl+C) ---
+python -m uvicorn main:app --host 127.0.0.1 --port 8000

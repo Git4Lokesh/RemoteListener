@@ -1,48 +1,63 @@
 #!/bin/bash
 
 # Multi-Stream Listener & Transcriber — macOS/Linux launcher
+# Just run this script to start everything.
+
+cd "$(dirname "$0")"
 
 PORT=${1:-8080}
 
-# cd to the directory where this script lives
-cd "$(dirname "$0")"
+echo "============================================"
+echo "  Multi-Stream Listener and Transcriber"
+echo "============================================"
+echo ""
 
-# Activate virtual environment if present
-if [ -d "venv" ]; then
-    echo "Activating virtual environment (venv)..."
-    source venv/bin/activate
-elif [ -d ".venv" ]; then
-    echo "Activating virtual environment (.venv)..."
-    source .venv/bin/activate
+# --- Check Python ---
+if ! command -v python3 &> /dev/null; then
+    echo "[ERROR] python3 is not installed or not on PATH."
+    echo "        Python 3.10+ is required. Download from https://python.org"
+    exit 1
 fi
 
-# Check that required external tools are installed
+# --- Check ffmpeg ---
 if ! command -v ffmpeg &> /dev/null; then
-    echo "Error: ffmpeg is not installed or not on PATH."
-    echo "Install it with: brew install ffmpeg (macOS) or sudo apt install ffmpeg (Linux)"
+    echo "[ERROR] ffmpeg is not installed or not on PATH."
+    echo "        Install with: brew install ffmpeg (macOS) or sudo apt install ffmpeg (Linux)"
     exit 1
 fi
 
-if ! command -v streamlink &> /dev/null; then
-    echo "Error: streamlink is not installed or not on PATH."
-    echo "Install it with: pip install streamlink"
-    exit 1
+# --- Create virtual environment on first run ---
+if [ ! -d "venv" ]; then
+    echo "Setting up for first time..."
+    python3 -m venv venv
+    echo ""
 fi
 
-echo "Starting Multi-Stream Listener & Transcriber..."
+# --- Activate virtual environment ---
+source venv/bin/activate
+
+# --- Install dependencies if needed ---
+if ! python -c "import faster_whisper" 2>/dev/null; then
+    echo "Installing dependencies..."
+    pip install -r requirements.txt
+    playwright install chromium
+    echo ""
+fi
+
+echo "Starting server..."
 echo "Dashboard will be available at http://localhost:$PORT"
+echo ""
 
-# Start uvicorn in the background, then open the browser after a short delay
-python -m uvicorn main:app --host 0.0.0.0 --port "$PORT" &
+# --- Start uvicorn in background, open browser, then wait ---
+python -m uvicorn main:app --host 127.0.0.1 --port "$PORT" &
 UVICORN_PID=$!
 
-# Give the server a moment to start, then open the dashboard
 sleep 2
+
 if [ "$(uname)" = "Darwin" ]; then
     open "http://localhost:$PORT"
 else
     xdg-open "http://localhost:$PORT" 2>/dev/null || echo "Open http://localhost:$PORT in your browser."
 fi
 
-# Bring uvicorn back to the foreground so Ctrl+C stops it cleanly
 wait $UVICORN_PID
