@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Stream Listener &amp; Transcriber</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header role="banner">
+    <h1>Multi-Stream Listener &amp; Transcriber</h1>
+  </header>
+
+  <main role="main">
+    <!-- Global Controls Bar -->
+    <section class="global-controls" aria-label="Global stream controls">
+      <button id="btn-start-all" type="button" aria-label="Start all idle streams">Start All</button>
+      <button id="btn-pause-all" type="button" disabled aria-label="Pause all listening streams">Pause All</button>
+    </section>
+
+    <!-- Concurrency Limit Warning Banner (hidden by default) -->
+    <div id="concurrency-warning" class="warning-banner" role="alert" aria-live="polite" hidden>
+      <span aria-hidden="true">⚠</span> Maximum concurrent listener limit reached.
+    </div>
+
+    <!-- Add Stream Form -->
+    <section class="add-stream-section" aria-label="Add a new stream source">
+      <h2>Add Stream</h2>
+      <form id="add-stream-form" novalidate aria-label="Add stream form">
+        <div class="form-group">
+          <label for="add-brand">Brand Name</label>
+          <input
+            type="text"
+            id="add-brand"
+            name="brand"
+            maxlength="100"
+            placeholder="e.g. ChannelOne"
+            required
+            autocomplete="off"
+            aria-describedby="add-brand-error"
+          >
+          <span id="add-brand-error" class="error-message" role="alert" aria-live="polite"></span>
+        </div>
+
+        <div class="form-group">
+          <label for="add-url">Stream URL</label>
+          <input
+            type="url"
+            id="add-url"
+            name="url"
+            maxlength="2048"
+            placeholder="e.g. https://example.com/live"
+            required
+            autocomplete="off"
+            aria-describedby="add-url-error"
+          >
+          <span id="add-url-error" class="error-message" role="alert" aria-live="polite"></span>
+        </div>
+
+        <button type="submit" id="btn-add-stream" aria-label="Add new stream">Add</button>
+      </form>
+    </section>
+
+    <!-- Stream Cards Container -->
+    <section class="stream-cards-section" aria-label="Configured streams">
+      <h2 class="sr-only">Streams</h2>
+      <div id="stream-cards" role="list" aria-label="Stream list">
+        <!-- Stream cards are dynamically rendered by app.js -->
+      </div>
+      <p id="no-streams-message" class="empty-state" hidden>No streams configured. Add one above to get started.</p>
+    </section>
+  </main>
+
+  <!-- Stream Card Template (cloned by app.js for each stream) -->
+  <template id="stream-card-template">
+    <article class="stream-card" role="listitem" data-stream-id="" aria-label="Stream card">
+
+      <!-- Card Header: brand name + status badge -->
+      <div class="card-header">
+        <h3 class="stream-brand" data-field="brand"></h3>
+        <span class="status-badge" data-field="status" aria-label="Stream status"></span>
+      </div>
+
+      <!-- Stream URL display -->
+      <p class="stream-url" data-field="url"></p>
+
+      <!-- Error message display (shown on stream errors from API) -->
+      <p class="card-error-message" data-field="error" role="alert" aria-live="polite" hidden></p>
+
+      <!-- Action Buttons -->
+      <div class="card-actions" role="toolbar" aria-label="Stream actions">
+        <button type="button" class="btn-play" data-action="play" aria-label="Play stream">
+          <span aria-hidden="true">▶</span> Play
+        </button>
+        <button type="button" class="btn-pause" data-action="pause" aria-label="Pause stream" hidden>
+          <span aria-hidden="true">⏸</span> Pause
+        </button>
+        <button type="button" class="btn-edit" data-action="edit" aria-label="Edit stream">
+          <span aria-hidden="true">✎</span> Edit
+        </button>
+        <button type="button" class="btn-delete" data-action="delete" aria-label="Delete stream">
+          <span aria-hidden="true">🗑</span> Delete
+        </button>
+        <button type="button" class="btn-download" data-action="download" aria-label="Download transcript">
+          <span aria-hidden="true">⬇</span> Download
+        </button>
+      </div>
+
+      <!-- Inline Edit Form (hidden by default, toggled by Edit button) -->
+      <form class="edit-form" hidden novalidate aria-label="Edit stream form">
+        <div class="form-group">
+          <label>
+            Brand Name
+            <input
+              type="text"
+              class="edit-brand"
+              name="brand"
+              maxlength="50"
+              required
+              autocomplete="off"
+              aria-describedby=""
+            >
+          </label>
+          <span class="edit-brand-error error-message" role="alert" aria-live="polite"></span>
+        </div>
+
+        <div class="form-group">
+          <label>
+            Stream URL
+            <input
+              type="url"
+              class="edit-url"
+              name="url"
+              maxlength="2048"
+              required
+              autocomplete="off"
+              aria-describedby=""
+            >
+          </label>
+          <span class="edit-url-error error-message" role="alert" aria-live="polite"></span>
+        </div>
+
+        <div class="edit-actions">
+          <button type="submit" class="btn-save-edit" aria-label="Save changes">Save</button>
+          <button type="button" class="btn-cancel-edit" aria-label="Cancel editing">Cancel</button>
+        </div>
+      </form>
+
+    </article>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
