@@ -47,10 +47,14 @@ class AppConfig:
     streams: list[StreamSource] = field(default_factory=list)
 
     def __post_init__(self):
-        """Resolve output_base_dir to ~/Desktop/transcripts if empty."""
+        """Resolve output_base_dir: TRANSCRIPT_DIR env var > ~/Desktop/transcripts."""
         if not self.output_base_dir:
+            import os
             from pathlib import Path as _P
-            self.output_base_dir = str(_P.home() / "Desktop" / "transcripts")
+            self.output_base_dir = os.environ.get(
+                'TRANSCRIPT_DIR',
+                str(_P.home() / 'Desktop' / 'transcripts')
+            )
 
 
 @dataclass

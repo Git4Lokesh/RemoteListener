@@ -1,0 +1,14 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.hypothesis/
+.pytest_cache/
+.git/
+.kiro/
+app.log
+transcripts/
+*.wav
+*.raw
+.DS_Store
+Thumbs.db
