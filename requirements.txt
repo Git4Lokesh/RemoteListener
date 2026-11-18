@@ -3,6 +3,7 @@ fastapi==0.115.6
 uvicorn[standard]==0.34.3
 pyyaml==6.0.2
 faster-whisper==1.2.1
+av<14  # Pinned for faster-whisper compatibility
 httpx==0.28.1
 
 # Testing dependencies
