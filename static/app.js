@@ -208,7 +208,8 @@
     var state = stream.state || "idle";
     var isListening = state === "listening";
     var isReconnecting = state === "reconnecting";
-    var isActive = isListening || isReconnecting;
+    var isConnecting = state === "connecting";
+    var isActive = isListening || isReconnecting || isConnecting;
     var atLimit = countListening() >= maxConcurrent;
 
     // -- Brand name and URL --

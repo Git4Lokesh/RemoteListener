@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 class StreamState(str, Enum):
     """Possible states for a stream lifecycle."""
     IDLE = "idle"
+    CONNECTING = "connecting"
     LISTENING = "listening"
     RECONNECTING = "reconnecting"
     ERROR = "error"

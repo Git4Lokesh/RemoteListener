@@ -506,6 +506,18 @@ button[aria-disabled="true"] {
 .status-badge--idle {
   background: #f3f4f6;
   color: var(--color-idle);
+}
+
+/* Connecting — blue with pulse */
+.status-badge--connecting {
+  background: #dbeafe;
+  color: #2563eb;
+  animation: pulse-connecting 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-connecting {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
   border: 1px solid #d1d5db;
 }
 

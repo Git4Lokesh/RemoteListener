@@ -295,6 +295,11 @@ class StreamWorker:
             # Delete the temp .wav immediately after transcription
             self._safe_delete(chunk_path)
 
+            # Transition CONNECTING → LISTENING on first successful transcription
+            if self._ctx.state == StreamState.CONNECTING:
+                self._on_state_change(self._source.id, StreamState.LISTENING)
+                logger.info("Stream '%s' now actively transcribing.", self._source.brand)
+
             # --- Append non-empty text to the session file ---
             if text and self._ctx.session_file_handle:
                 line = format_transcript_line(datetime.now(), text)
@@ -503,7 +508,7 @@ class StreamManager:
         return sum(
             1
             for ctx in self._contexts.values()
-            if ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING)
+            if ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING, StreamState.CONNECTING)
         )
 
     def _get_context(self, stream_id: str) -> _StreamContext:
@@ -527,7 +532,7 @@ class StreamManager:
         )
         extractor_type = None
         if (
-            ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING)
+            ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING, StreamState.CONNECTING)
             and ctx.extractor is not None
         ):
             extractor_type = ctx.extractor.extractor_type
@@ -612,7 +617,7 @@ class StreamManager:
             ctx = self._get_context(stream_id)
 
             # Already active — return current status without changes.
-            if ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING):
+            if ctx.state in (StreamState.LISTENING, StreamState.RECONNECTING, StreamState.CONNECTING):
                 return self._build_status(source, ctx)
 
             # Enforce concurrency limit.
@@ -654,9 +659,9 @@ class StreamManager:
                 auto_click_play=config.playwright_auto_click_play,
             )
 
-            # Prepare context for the listening session.
+            # Prepare context — start as CONNECTING until audio flows.
             stop_event = threading.Event()
-            ctx.state = StreamState.LISTENING
+            ctx.state = StreamState.CONNECTING
             ctx.session_file_handle = file_handle
             ctx.session_file_path = session_path
             ctx.extractor = extractor
@@ -700,6 +705,7 @@ class StreamManager:
             if ctx.state not in (
                 StreamState.LISTENING,
                 StreamState.RECONNECTING,
+                StreamState.CONNECTING,
             ):
                 return self._build_status(source, ctx)
 
@@ -808,6 +814,7 @@ class StreamManager:
             return ctx.state in (
                 StreamState.LISTENING,
                 StreamState.RECONNECTING,
+                StreamState.CONNECTING,
             )
 
     def get_download_path(self, stream_id: str) -> Optional[str]:
