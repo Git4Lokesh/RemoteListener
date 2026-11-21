@@ -49,6 +49,7 @@
 
   var STATUS_CONFIG = {
     idle: { label: "Idle", indicator: "\u25CB", badgeClass: "status-badge--idle" },
+    connecting: { label: "Connecting...", indicator: "\u25CE", badgeClass: "status-badge--connecting" },
     listening: { label: "Listening", indicator: "\u25CF", badgeClass: "status-badge--listening" },
     reconnecting: { label: "Reconnecting", indicator: "\u25C9", badgeClass: "status-badge--reconnecting" },
     error: { label: "Error", indicator: "\u2715", badgeClass: "status-badge--error" },
